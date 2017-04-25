@@ -1,9 +1,9 @@
-##Rocket_Cat.py
-# Date: 4/23/2017
-# Class: EAE 1410
-# Teacher: Dr. Mark C. van Langeveld
-# TA: Rohan More
-##Partners: Alfredo Rodriguez, Hao Quin, Alex McCorristin
+##Flappy Motion.py
+#Date: 4/23/2017
+#Class: EAE 1410
+#Teacher: Dr. Mark C. van Langeveld
+#TA: Rohan More
+##Partners: Alfredo Rodriguez, Hao Quin, Alex McCorris
 
 
 import pygame
@@ -13,12 +13,13 @@ import random
 pygame.mixer.pre_init(44100, -16, 2, 1024 * 4)
 pygame.init()
 
-class Rocket_Cat:
+class FlappyMotion:
     def __init__(self):
 
         ##Initializes screen
         self.screen = pygame.display.set_mode((400, 708))
         self.cat = pygame.Rect(65, 50, 50, 50)
+
 
         ##Space background
         self.background = pygame.image.load("images/galaxy.jpg").convert()
@@ -38,46 +39,23 @@ class Rocket_Cat:
 
         ##Sounds
         self.cat_unhappy = pygame.mixer.Sound('Audio/Unhappy_Meow.wav')
-        self.cat_unhappy.set_volume(0.15)
-
-        self.cat_happy = pygame.mixer.Sound('Audio/meow.wav')
-        self.cat_happy.set_volume(0.3)
-
-
-        self.rocket_sound = pygame.mixer.Sound('Audio/Jet_Hiss.wav')
-        self.rocket_sound.set_volume(0.09)
-
-        self.contact = pygame.mixer.Sound('Audio/thud.wav')
-        self.contact.set_volume(0.01)
-
-        self.coinhit = pygame.mixer.Sound('Audio/Lazer.wav')
-        self.coinhit.set_volume(0.01)
-
-        sound_check = 0
-
-        ##Music
-        self.music = pygame.mixer.music.load('Audio/Space_Walk.wav')
-        pygame.mixer.music.play(-1, 0.0)
+        self.cat_happy = pygame.mixer.Sound('Audio/pur_meow.wav')
+        self.rocket_sound = pygame.mixer.Sound('Audio/Rumbel.wav')
 
         ##List of all animations put into one
         self.catSprites = [self.catStationary, self.catBlastOff1,
-                           self.catBlastOff2, self.catDead]
+                           self.catBlastOff2,self.catDead]
 
-        ##Obstacles & Coins
+        ##Obstacles
         self.wallUp = pygame.image.load("images/spikes_btm.png").convert_alpha()
         self.wallDown = pygame.image.load("images/spikes_top.png").convert_alpha()
 
         self.wallDown1 = pygame.image.load("images/top.png").convert_alpha()
         self.wallUp1 = pygame.image.load("images/bottom.png").convert_alpha()
 
-        self.coin = pygame.image.load("images/coin.png").convert_alpha()
-        self.coin = pygame.transform.scale(self.coin, (50, 50))
-
         ##Obstacle and Cat settings
         self.gap = 130
         self.wallx = 400
-        self.coinx = random.randint(50, 200)
-        self.coiny = random.randint(100, 600)
         self.catY = 350
         self.jump = 0
         self.jumpSpeed = 10
@@ -92,14 +70,6 @@ class Rocket_Cat:
         self.wallx -= 2
         if self.wallx < -80:
             self.wallx = 400
-            self.counter += 1
-            self.offset = random.randint(-110, 110)
-
-    ##Update the coins positions
-    def updatecoin(self):
-        self.coinx -= 2
-        if self.coinx < -80:
-            self.coinx = 300
             self.counter += 1
             self.offset = random.randint(-110, 110)
 
@@ -129,46 +99,36 @@ class Rocket_Cat:
                                self.wallDown.get_height())
 
         upRect1 = pygame.Rect(self.wallx,
-                              360 + self.gap - self.offset + 10,
-                              self.wallUp1.get_width() - 10,
-                              self.wallUp1.get_height())
+                             360 + self.gap - self.offset + 10,
+                             self.wallUp1.get_width() - 10,
+                             self.wallUp1.get_height())
 
         downRect1 = pygame.Rect(self.wallx,
-                                0 - self.gap - self.offset - 10,
-                                self.wallDown1.get_width() - 10,
-                                self.wallDown1.get_height())
-
-
-
-        ## coin colision ----what I'm having problems with----
-
-        # if coinRect.colliderect(self.cat):
-        #     self.coinhit.play()
-
+                               0 - self.gap - self.offset - 10,
+                               self.wallDown1.get_width() - 10,
+                               self.wallDown1.get_height())
 
         ##Tube Up
         if upRect.colliderect(self.cat):
-            self.contact.play()
             self.cat_unhappy.play()
             self.dead = True
 
         ##Tube down
         if downRect.colliderect(self.cat):
-            self.contact.play()
             self.cat_unhappy.play()
             self.dead = True
 
+
         ##Spikes up
         if upRect1.colliderect(self.cat):
-            self.contact.play()
             self.cat_unhappy.play()
             self.dead = True
 
         ##Spikes down
         if downRect1.colliderect(self.cat):
             self.cat_unhappy.play()
-            self.contact.play()
             self.dead = True
+
 
         if not 0 < self.cat[1] < 720:
             self.cat[1] = 50
@@ -179,12 +139,15 @@ class Rocket_Cat:
             self.offset = random.randint(-110, 110)
             self.gravity = 5
 
+
     ##Main function of the game
     def main(self):
+
 
         clock = pygame.time.Clock()
         pygame.font.init()
         font = pygame.font.SysFont("Arial", 50)
+
 
         while True:
             clock.tick(60)
@@ -199,9 +162,7 @@ class Rocket_Cat:
                     self.jump = 17
                     self.gravity = 5
                     self.jumpSpeed = 10
-                    sound_check = random.randint(1, 3)
-                    if sound_check == 1:
-                        self.cat_happy.play()
+                    self.cat_happy.play()
 
             ##Blits all items in to screen
             self.screen.fill((255, 255, 255))
@@ -210,20 +171,19 @@ class Rocket_Cat:
                              (self.wallx - self.offset, 615))
             self.screen.blit(self.wallDown,
                              (self.wallx - self.offset, -5))
-            self.screen.blit(self.coin,
-                             (self.coinx - self.offset, self.coiny))
 
             self.screen.blit(self.wallUp1,
                              (self.wallx, 360 + self.gap - self.offset))
             self.screen.blit(self.wallDown1,
                              (self.wallx, 0 - self.gap - self.offset))
 
-            self.screen.blit(font.render(str(self.counter), -1,
-                                         (255, 255, 255)), (200, 50))
+            self.screen.blit(font.render(str(self.counter),-1,
+                                         (255, 255, 255)),(200, 50))
 
             ##If the cat dies play unhappy sound
             ##Change animation
             if self.dead:
+                self.cat_unhappy.play()
                 self.sprite = 3
 
             ##If cat jumps chnage animation to rockets
@@ -239,10 +199,8 @@ class Rocket_Cat:
 
             ##Update obstacles and cat
             self.updateWalls()
-            self.updatecoin()
             self.catUpdate()
             pygame.display.update()
 
-
 if __name__ == "__main__":
-    Rocket_Cat().main()
+   FlappyMotion().main()
