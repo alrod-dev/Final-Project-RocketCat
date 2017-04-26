@@ -73,11 +73,30 @@ class Rocket_Cat:
         self.coin = pygame.image.load("images/coin.png").convert_alpha()
         self.coin = pygame.transform.scale(self.coin, (50, 50))
 
+        self.coinGrey = pygame.image.load("images/coin_grey.png")
+        self.coinGrey = pygame.transform.scale(self.coinGrey, (50, 50))
+
+        self.coinSprites = [self.coin, self.coinGrey]
+
+        self.meteor = pygame.image.load("images/asteroid.png")
+        self.meteor = pygame.transform.scale(self.meteor, (50, 50))
+
         ##Obstacle and Cat settings
         self.gap = 130
         self.wallx = 400
-        self.coinx = random.randint(50, 200)
+        self.offset = random.randint(-110, 110)
+
+        ##Coin parameters
+        self.coinx = random.randint(300, 600)
         self.coiny = random.randint(100, 600)
+        self.coinSprite = 0
+        self.coinDead = False
+
+        ##Meteor Parameters
+        self.meteorX = random.randint(300, 600)
+        self.meteorY = random.randint(100, 600)
+
+        ##Cat Parameters
         self.catY = 350
         self.jump = 0
         self.jumpSpeed = 10
@@ -85,7 +104,8 @@ class Rocket_Cat:
         self.dead = False
         self.sprite = 0
         self.counter = 0
-        self.offset = random.randint(-110, 110)
+
+
 
     ##Update the walls positions
     def updateWalls(self):
@@ -97,11 +117,33 @@ class Rocket_Cat:
 
     ##Update the coins positions
     def updatecoin(self):
-        self.coinx -= 2
+        self.coinx -= 6
+
+        self.coinDead = False
+
         if self.coinx < -80:
-            self.coinx = 300
-            self.counter += 1
-            self.offset = random.randint(-110, 110)
+            self.coinx = random.randint(300, 600)
+            self.coiny = random.randint(-200, 400)
+
+
+    def meteorCounter(self):
+
+        meteorCount = self.counter
+
+        meteorCount /= 5
+
+        if meteorCount > 1:
+
+            return meteorCount
+
+
+    def updateMeteor(self):
+        self.meteorX -= 6
+
+        if self.meteorX < -80:
+            self.meteorX = random.randint(300, 600)
+            self.meteorY = random.randint(-100, 400)
+
 
     ##Updates cat animations and whether its dead or not
     def catUpdate(self):
@@ -116,13 +158,14 @@ class Rocket_Cat:
         else:
             self.catY += self.gravity
             self.gravity += 0.2
-        self.cat[1] = self.catY
+            self.cat[1] = self.catY
 
         ##Obstacles Boundaries
         upRect = pygame.Rect(self.wallx,
                              615 + self.gap - self.offset + 10,
                              self.wallUp.get_width() - 10,
                              self.wallUp.get_height())
+
         downRect = pygame.Rect(self.wallx,
                                0 - self.gap - self.offset - 10,
                                self.wallDown.get_width() - 10,
@@ -130,20 +173,19 @@ class Rocket_Cat:
 
         upRect1 = pygame.Rect(self.wallx,
                               360 + self.gap - self.offset + 10,
-                              self.wallUp1.get_width() - 10,
-                              self.wallUp1.get_height())
+                              self.wallUp1.get_width(),
+                              75)
 
         downRect1 = pygame.Rect(self.wallx,
                                 0 - self.gap - self.offset - 10,
-                                self.wallDown1.get_width() - 10,
-                                self.wallDown1.get_height())
+                                300,
+                                75)
 
+        coinRect = pygame.Rect(self.coinx, self.coiny,
+                               self.coin.get_width(), self.coin.get_height())
 
-
-        ## coin colision ----what I'm having problems with----
-
-        # if coinRect.colliderect(self.cat):
-        #     self.coinhit.play()
+        meteorRect = pygame.Rect(self.meteorX, self.meteorY,
+                               14.5, 12.5)
 
 
         ##Tube Up
@@ -169,6 +211,20 @@ class Rocket_Cat:
             self.cat_unhappy.play()
             self.contact.play()
             self.dead = True
+
+        if coinRect.colliderect(self.cat):
+            self.cat_happy.play()
+            self.contact.play()
+            self.coinDead = True
+            self.counter += 1
+            pygame.time.delay(15)
+
+        if meteorRect.colliderect(self.cat):
+            self.cat_happy.play()
+            self.cat_unhappy.play()
+            self.contact.play()
+            self.dead = True
+
 
         if not 0 < self.cat[1] < 720:
             self.cat[1] = 50
@@ -210,8 +266,8 @@ class Rocket_Cat:
                              (self.wallx - self.offset, 615))
             self.screen.blit(self.wallDown,
                              (self.wallx - self.offset, -5))
-            self.screen.blit(self.coin,
-                             (self.coinx - self.offset, self.coiny))
+
+
 
             self.screen.blit(self.wallUp1,
                              (self.wallx, 360 + self.gap - self.offset))
@@ -231,16 +287,30 @@ class Rocket_Cat:
                 self.sprite = 1
                 self.rocket_sound.play()
 
+            if self.coinDead:
+                self.coinSprite = 1;
+
+
             self.screen.blit(self.catSprites[self.sprite], (70, self.catY))
+
+            self.screen.blit(self.coinSprites[self.coinSprite],
+                             (self.coinx, self.coiny))
+
+            self.screen.blit(self.meteor,
+                             (self.meteorX, self.meteorY))
 
             ##If not dead then update wall accordingly and first sprite
             if not self.dead:
                 self.sprite = 0
 
+            if not self.coinDead:
+                self.coinSprite = 0
+
             ##Update obstacles and cat
             self.updateWalls()
             self.updatecoin()
             self.catUpdate()
+            self.updateMeteor()
             pygame.display.update()
 
 
