@@ -13,6 +13,7 @@ import random
 pygame.mixer.pre_init(44100, -16, 2, 1024 * 4)
 pygame.init()
 
+
 class Rocket_Cat:
     def __init__(self):
 
@@ -36,24 +37,23 @@ class Rocket_Cat:
         self.catDead = pygame.image.load("images/Cat_DEAD.png")
         self.catDead = pygame.transform.scale(self.catDead, (50, 50))
 
-        ##Sounds
+        ##Cat Sound
         self.cat_unhappy = pygame.mixer.Sound('Audio/Unhappy_Meow.wav')
         self.cat_unhappy.set_volume(0.15)
 
         self.cat_happy = pygame.mixer.Sound('Audio/meow.wav')
         self.cat_happy.set_volume(0.3)
 
-
         self.rocket_sound = pygame.mixer.Sound('Audio/Jet_Hiss.wav')
         self.rocket_sound.set_volume(0.09)
 
+        ##Background music
         self.contact = pygame.mixer.Sound('Audio/thud.wav')
         self.contact.set_volume(0.01)
 
+        ##Coin Music
         self.coinhit = pygame.mixer.Sound('Audio/Lazer.wav')
         self.coinhit.set_volume(0.01)
-
-        sound_check = 0
 
         ##Music
         self.music = pygame.mixer.music.load('Audio/Space_Walk.wav')
@@ -64,11 +64,11 @@ class Rocket_Cat:
                            self.catBlastOff2, self.catDead]
 
         ##Obstacles & Coins
-        self.wallUp = pygame.image.load("images/spikes_btm.png").convert_alpha()
-        self.wallDown = pygame.image.load("images/spikes_top.png").convert_alpha()
+        self.spikesUp = pygame.image.load("images/spikes_btm.png").convert_alpha()
+        self.spikesDown = pygame.image.load("images/spikes_top.png").convert_alpha()
 
-        self.wallDown1 = pygame.image.load("images/top.png").convert_alpha()
-        self.wallUp1 = pygame.image.load("images/bottom.png").convert_alpha()
+        self.tubeUp = pygame.image.load("images/top.png").convert_alpha()
+        self.tubeDown = pygame.image.load("images/bottom.png").convert_alpha()
 
         self.coin = pygame.image.load("images/coin.png").convert_alpha()
         self.coin = pygame.transform.scale(self.coin, (50, 50))
@@ -105,8 +105,6 @@ class Rocket_Cat:
         self.sprite = 0
         self.counter = 0
 
-
-
     ##Update the walls positions
     def updateWalls(self):
         self.wallx -= 2
@@ -125,7 +123,7 @@ class Rocket_Cat:
             self.coinx = random.randint(300, 600)
             self.coiny = random.randint(-200, 400)
 
-
+    ##Adds another meteor if player is above 5 points
     def meteorCounter(self):
 
         meteorCount = self.counter
@@ -133,17 +131,15 @@ class Rocket_Cat:
         meteorCount /= 5
 
         if meteorCount > 1:
-
             return meteorCount
 
-
+    ##Updates meteor position
     def updateMeteor(self):
         self.meteorX -= 6
 
         if self.meteorX < -80:
             self.meteorX = random.randint(300, 600)
             self.meteorY = random.randint(-100, 400)
-
 
     ##Updates cat animations and whether its dead or not
     def catUpdate(self):
@@ -161,70 +157,74 @@ class Rocket_Cat:
             self.cat[1] = self.catY
 
         ##Obstacles Boundaries
-        upRect = pygame.Rect(self.wallx,
-                             615 + self.gap - self.offset + 10,
-                             self.wallUp.get_width() - 10,
-                             self.wallUp.get_height())
+        tubeUpRect = pygame.Rect(self.wallx,
+                                 0 - self.gap - self.offset - 10,
+                                 self.tubeUp.get_width() - 10,
+                                 self.tubeUp.get_height())
 
-        downRect = pygame.Rect(self.wallx,
-                               0 - self.gap - self.offset - 10,
-                               self.wallDown.get_width() - 10,
-                               self.wallDown.get_height())
+        tubeDownRect = pygame.Rect(self.wallx,
+                                   360 + self.gap - self.offset + 10,
+                                   self.tubeDown.get_width() - 10,
+                                   self.tubeDown.get_height())
 
-        upRect1 = pygame.Rect(self.wallx,
-                              360 + self.gap - self.offset + 10,
-                              self.wallUp1.get_width(),
-                              75)
+        ##Spike Boundairies
+        spikesDownRect = pygame.Rect(self.wallx,
+                                     615 + self.gap - self.offset + 10,
+                                     self.spikesDown.get_width() - 10,
+                                     self.spikesDown.get_height())
 
-        downRect1 = pygame.Rect(self.wallx,
-                                0 - self.gap - self.offset - 10,
-                                300,
-                                75)
+        spikesUpRect = pygame.Rect(self.wallx,
+                                   0 - self.gap - self.offset - 10,
+                                   self.spikesUp.get_width() - 10,
+                                   self.spikesUp.get_height())
 
+        ##Coin Boundaries
         coinRect = pygame.Rect(self.coinx, self.coiny,
                                self.coin.get_width(), self.coin.get_height())
 
+        ##Meteor Boundaries
         meteorRect = pygame.Rect(self.meteorX, self.meteorY,
-                               14.5, 12.5)
-
+                                 14.5, 12.5)
 
         ##Tube Up
-        if upRect.colliderect(self.cat):
+        if tubeUpRect.colliderect(self.cat):
             self.contact.play()
             self.cat_unhappy.play()
             self.dead = True
 
         ##Tube down
-        if downRect.colliderect(self.cat):
+        if tubeDownRect.colliderect(self.cat):
             self.contact.play()
             self.cat_unhappy.play()
             self.dead = True
 
         ##Spikes up
-        if upRect1.colliderect(self.cat):
+        if spikesDownRect.colliderect(self.cat):
             self.contact.play()
             self.cat_unhappy.play()
             self.dead = True
 
         ##Spikes down
-        if downRect1.colliderect(self.cat):
+        if spikesUpRect.colliderect(self.cat):
             self.cat_unhappy.play()
             self.contact.play()
             self.dead = True
 
+        ##Coin Collision
         if coinRect.colliderect(self.cat):
             self.cat_happy.play()
             self.contact.play()
+            self.coinhit.play()
             self.coinDead = True
             self.counter += 1
             pygame.time.delay(15)
 
+        # Meteor Collision
         if meteorRect.colliderect(self.cat):
             self.cat_happy.play()
             self.cat_unhappy.play()
             self.contact.play()
             self.dead = True
-
 
         if not 0 < self.cat[1] < 720:
             self.cat[1] = 50
@@ -262,18 +262,20 @@ class Rocket_Cat:
             ##Blits all items in to screen
             self.screen.fill((255, 255, 255))
             self.screen.blit(self.background, (0, 0))
-            self.screen.blit(self.wallUp,
+
+            ##Spikes
+            self.screen.blit(self.spikesUp,
                              (self.wallx - self.offset, 615))
-            self.screen.blit(self.wallDown,
+            self.screen.blit(self.spikesDown,
                              (self.wallx - self.offset, -5))
 
-
-
-            self.screen.blit(self.wallUp1,
+            ##Tubes
+            self.screen.blit(self.tubeDown,
                              (self.wallx, 360 + self.gap - self.offset))
-            self.screen.blit(self.wallDown1,
+            self.screen.blit(self.tubeUp,
                              (self.wallx, 0 - self.gap - self.offset))
 
+            ##Score
             self.screen.blit(font.render(str(self.counter), -1,
                                          (255, 255, 255)), (200, 50))
 
@@ -287,15 +289,18 @@ class Rocket_Cat:
                 self.sprite = 1
                 self.rocket_sound.play()
 
+            ##Gray out Coin
             if self.coinDead:
                 self.coinSprite = 1;
 
-
+            ##Blits Cat
             self.screen.blit(self.catSprites[self.sprite], (70, self.catY))
 
+            ##Blits Coin
             self.screen.blit(self.coinSprites[self.coinSprite],
                              (self.coinx, self.coiny))
 
+            ##Blits Meteor
             self.screen.blit(self.meteor,
                              (self.meteorX, self.meteorY))
 
