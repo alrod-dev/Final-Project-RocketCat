@@ -24,6 +24,12 @@ class Rocket_Cat:
         ##Space background
         self.background = pygame.image.load("images/galaxy.jpg").convert()
 
+        self.start = pygame.image.load("images/start.png").convert_alpha()
+
+        self.scoreboard = pygame.image.load("images/SCOREBOARD.png").convert_alpha()
+
+
+
         ##Cat Sprites Animations
         self.catStationary = pygame.image.load("images/Cat_Stationary.png").convert_alpha()
         self.catStationary = pygame.transform.scale(self.catStationary, (50, 50))
@@ -105,6 +111,12 @@ class Rocket_Cat:
         self.sprite = 0
         self.counter = 0
 
+        #GameStatus
+
+        self.gameStatus = False
+        self.gameStatus1 = False
+        self.gameStatus2 = False
+
     ##Update the walls positions
     def updateWalls(self):
         self.wallx -= 2
@@ -143,6 +155,9 @@ class Rocket_Cat:
 
     ##Updates cat animations and whether its dead or not
     def catUpdate(self):
+
+        self.catDead = False
+        self.sprite = 0
 
         ##Checks whether the cat is jumping or not
         ##Changes animations
@@ -235,6 +250,7 @@ class Rocket_Cat:
             self.offset = random.randint(-110, 110)
             self.gravity = 5
 
+
     ##Main function of the game
     def main(self):
 
@@ -242,81 +258,161 @@ class Rocket_Cat:
         pygame.font.init()
         font = pygame.font.SysFont("Arial", 50)
 
-        while True:
-            clock.tick(60)
+        ##Update obstacles and cat
+        self.catUpdate()
+
+        self.gameStatus = True
+        self.gameStatus1 = False
+        self.gameStatus2 = False
+
+        # Render a Text Surface
+        while self.gameStatus:
 
             for event in pygame.event.get():
+
                 if event.type == pygame.QUIT:
+                    pygame.quit()
                     sys.exit()
 
-                ##User presses space, up or down key
-                ##Play cat sounds, change animation, and change position
-                if (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN) and not self.dead:
-                    self.jump = 17
-                    self.gravity = 5
-                    self.jumpSpeed = 10
-                    sound_check = random.randint(1, 3)
-                    if sound_check == 1:
-                        self.cat_happy.play()
+                ##If space key is pressed change screen
+                elif event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_SPACE or pygame.K_KP_ENTER:
 
-            ##Blits all items in to screen
+                        self.gameStatus = False
+                        self.gameStatus1 = True
+
             self.screen.fill((255, 255, 255))
             self.screen.blit(self.background, (0, 0))
+            self.screen.blit(self.start, (100, 200))
 
-            ##Spikes
-            self.screen.blit(self.spikesUp,
-                             (self.wallx - self.offset, 615))
-            self.screen.blit(self.spikesDown,
-                             (self.wallx - self.offset, -5))
+            pygame.display.update()
 
-            ##Tubes
-            self.screen.blit(self.tubeDown,
-                             (self.wallx, 360 + self.gap - self.offset))
-            self.screen.blit(self.tubeUp,
-                             (self.wallx, 0 - self.gap - self.offset))
-
-            ##Score
-            self.screen.blit(font.render(str(self.counter), -1,
-                                         (255, 255, 255)), (200, 50))
-
-            ##If the cat dies play unhappy sound
-            ##Change animation
-            if self.dead:
-                self.sprite = 3
-
-            ##If cat jumps chnage animation to rockets
-            elif self.jump:
-                self.sprite = 1
-                self.rocket_sound.play()
-
-            ##Gray out Coin
-            if self.coinDead:
-                self.coinSprite = 1;
-
-            ##Blits Cat
-            self.screen.blit(self.catSprites[self.sprite], (70, self.catY))
-
-            ##Blits Coin
-            self.screen.blit(self.coinSprites[self.coinSprite],
-                             (self.coinx, self.coiny))
-
-            ##Blits Meteor
-            self.screen.blit(self.meteor,
-                             (self.meteorX, self.meteorY))
-
-            ##If not dead then update wall accordingly and first sprite
-            if not self.dead:
-                self.sprite = 0
-
-            if not self.coinDead:
-                self.coinSprite = 0
+        else:
 
             ##Update obstacles and cat
             self.updateWalls()
             self.updatecoin()
             self.catUpdate()
             self.updateMeteor()
-            pygame.display.update()
+
+            while self.gameStatus1:
+
+                clock.tick(60)
+
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        sys.exit()
+
+                    ##User presses space, up or down key
+                    ##Play cat sounds, change animation, and change position
+                    if (event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN) and not self.dead:
+                        self.jump = 17
+                        self.gravity = 5
+                        self.jumpSpeed = 10
+                        sound_check = random.randint(1, 3)
+                        if sound_check == 1:
+                            self.cat_happy.play()
+
+                ##Blits all items in to screen
+                self.screen.fill((255, 255, 255))
+                self.screen.blit(self.background, (0, 0))
+
+                ##Spikes
+                self.screen.blit(self.spikesUp,
+                                 (self.wallx - self.offset, 615))
+                self.screen.blit(self.spikesDown,
+                                 (self.wallx - self.offset, -5))
+
+                ##Tubes
+                self.screen.blit(self.tubeDown,
+                                 (self.wallx, 360 + self.gap - self.offset))
+                self.screen.blit(self.tubeUp,
+                                 (self.wallx, 0 - self.gap - self.offset))
+
+                ##Score
+                self.screen.blit(font.render(str(self.counter), -1,
+                                             (255, 255, 255)), (200, 50))
+
+                ##If the cat dies play unhappy sound
+                ##Change animation
+                if self.dead:
+
+                    self.sprite = 3
+                    self.gameStatus1 = False
+                    self.gameStatus2 = True
+
+
+                ##If cat jumps chnage animation to rockets
+                elif self.jump:
+                    self.sprite = 1
+                    self.rocket_sound.play()
+
+                ##Gray out Coin
+                if self.coinDead:
+                    self.coinSprite = 1;
+
+                ##Blits Cat
+                self.screen.blit(self.catSprites[self.sprite], (70, self.catY))
+
+                ##Blits Coin
+                self.screen.blit(self.coinSprites[self.coinSprite],
+                                 (self.coinx, self.coiny))
+
+                ##Blits Meteor
+                self.screen.blit(self.meteor,
+                                 (self.meteorX, self.meteorY))
+
+                ##If not dead then update wall accordingly and first sprite
+                if not self.dead:
+                    self.sprite = 0
+
+                if not self.coinDead:
+                    self.coinSprite = 0
+
+                ##Update obstacles and cat
+                self.updateWalls()
+                self.updatecoin()
+                self.catUpdate()
+                self.updateMeteor()
+                pygame.display.update()
+
+            else:
+
+                ##Final score to be displayed
+                finalScore = self.counter
+
+                self.cat_unhappy.play()
+
+                while self.gameStatus2:
+
+                    for event in pygame.event.get():
+                        if event.type == pygame.QUIT:
+                            sys.exit()
+
+                            ##If space key is pressed change screen
+                        elif event.type == pygame.KEYDOWN:
+                            if event.key == pygame.K_SPACE or pygame.K_KP_ENTER:
+
+                                self.gameStatus2 = False
+
+
+
+                    self.screen.fill((255, 255, 255))
+                    self.screen.blit(self.background, (0, 0))
+                    self.screen.blit(self.scoreboard, (-50, 0))
+
+                    ##Score
+                    self.screen.blit(font.render(str(finalScore), -1,
+                                                 (255, 255, 255)), (180, 240))
+
+
+                    ##Update obstacles and cat
+                    self.catUpdate()
+                    pygame.display.update()
+
+                else:
+
+                    self.main()
 
 
 if __name__ == "__main__":
